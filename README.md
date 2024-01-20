@@ -34,11 +34,11 @@ See the example repository [here](https://github.com/doug-wade/eleventy-plugin-g
 
 ### modelName
 
-Choose which GPT4All-supported model to use to generate your static website. Defaults to `replit-code-v1_5-3b-newbpe-q4_0.gguf`.
+Choose which GPT4All-supported model to use to generate your static website. Defaults to `mistral-7b-openorca.Q4_0.gguf`.
 
 ```javascript
 eleventyConfig.addPlugin(gpt4AllPlugin, { 
-    modelName:  'mistral-7b-openorca.Q4_0.gguf'
+    modelName:  'replit-code-v1_5-3b-newbpe-q4_0.gguf'
 });
 ```
 
