@@ -1,8 +1,9 @@
 {
   "name": "eleventy-plugin-gpt4all",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "An eleventy plugin for generating static assets from text prompts",
   "main": "index.js",
+  "type": "commonjs",
   "scripts": {
     "lint": "eslint index.js"
   },
@@ -16,13 +17,18 @@
   "author": "Douglas Wade <douglas.b.wade@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "gpt4all": "^3.1.0"
+    "gpt4all": "^3.1.0",
+    "jsdom": "^16.6.0"
   },
   "devDependencies": {
     "@types/node": "20.11.5",
-    "eslint": "^8.56.0",
-    "jsdom": "^23.2.0"
+    "eslint": "^8.56.0"
   },
+  "files": [
+    "index.js",
+    "package.json",
+    "README.md"
+  ],
   "bugs": {
     "url": "https://github.com/doug-wade/eleventy-plugin-gpt4all/issues?q=is%3Aissue+is%3Aopen"
   },
