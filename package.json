@@ -33,5 +33,7 @@
     "url": "https://github.com/doug-wade/eleventy-plugin-gpt4all/issues?q=is%3Aissue+is%3Aopen"
   },
   "homepage": "https://github.com/doug-wade/eleventy-plugin-gpt4all",
-  "repository": "https://github.com/doug-wade/eleventy-plugin-gpt4all.git"
+  "repository": {
+    "url": "git+https://github.com/doug-wade/eleventy-plugin-gpt4all.git"
+  }
 }
