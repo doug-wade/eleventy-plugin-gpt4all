@@ -4,7 +4,7 @@
   "description": "An eleventy plugin for generating static assets from text prompts",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "eslint index.js"
   },
   "keywords": [
     "genai",
@@ -20,6 +20,7 @@
   },
   "devDependencies": {
     "@types/node": "20.11.5",
+    "eslint": "^8.56.0",
     "jsdom": "^16.6.0"
   },
   "private": true,
