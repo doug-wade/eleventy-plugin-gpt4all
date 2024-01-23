@@ -2,6 +2,7 @@ const path = require('node:path');
 const fs = require('node:fs/promises');
 const { JSDOM } = require('jsdom');
 const { createCompletion, loadModel } = require('gpt4all');
+const mkdirp = require('mkdirp');
 
 const systemPromptTemplate = `
 You are an expert web developer, who conforms 
@@ -11,13 +12,58 @@ giving me an answer, and check your work for correctness. Consider
 accessibility, seo, and performance when designing solutions.
 `;
 
-const generateFile = async (model, prompt, lang) => {
+const getIntroPrompt = (prompt) => `
+We are going to write a web page that matches the following description, 
+surrounded by triple quotes ("""). The prompt description is as follows:
+
+"""
+${prompt}
+"""
+`;
+
+const getCodeReviewPrompt = (lang, code) => `
+Please review the following ${lang} code, delimited by triple quotes 
+(""") for correctness and best practices. If you find any errors, 
+please correct them and return the corrected code and only the corrected 
+code. 
+
+"""
+${code}
+"""
+`;
+
+const codeReview = async (model, code, lang) => {
     const response = await createCompletion(model, [
-        { role: 'user', content: `I would like you to write a web page that matches the following description: ${prompt}` },
-        { role: 'user', content: `Please generate the ${lang} needed for such a web page. Please output the code, and only the code, in the ${lang} language following best practices and coding style` }
+        { role: 'user', content: getCodeReviewPrompt(lang, code) }
+    ], { systemPromptTemplate });
+    return response.choices[0].message.content;
+};
+
+const generateFiles = async (model, prompt) => {
+    const htmlResponse = await createCompletion(model, [
+        { role: 'user', content: getIntroPrompt(prompt) },
+        { role: 'user', content: `Please generate the html needed for the web page. Please output the code, and only the code, in html language following best practices and coding style` }
     ], { systemPromptTemplate });
 
-    return response.choices[0].message.content;
+    const cssResponse = await createCompletion(model, [
+        { role: 'user', content: getIntroPrompt(prompt) },
+        { role: 'user', content: `Please generate the css needed for the web page. Please output the code, and only the code, in css language following best practices and coding style` }
+    ], { systemPromptTemplate });
+
+    const jsResponse = await createCompletion(model, [
+        { role: 'user', content: getIntroPrompt(prompt) },
+        { role: 'user', content: `Please generate the javascript needed for the web page. Please output the code, and only the code, in javascript language following best practices and coding style` }
+    ], { systemPromptTemplate });
+
+    createCompletion(model, [
+        { role: 'user', content: `Thank you for your work.` }
+    ], { systemPromptTemplate });
+
+    return {
+        html: await codeReview(model, htmlResponse.choices[0].message.content, 'html'),
+        css: await codeReview(model, cssResponse.choices[0].message.content, 'css'),
+        js: await codeReview(model, jsResponse.choices[0].message.content, 'javascript'),
+    };
 }
 
 const generatePageFromPrompt = async (prompt, model, outputPath, verbose) => {
@@ -28,11 +74,7 @@ const generatePageFromPrompt = async (prompt, model, outputPath, verbose) => {
     log(`Generating page ${pageName} from prompt`);
     
     // Call gpt4all with the prompt and get the statics
-    const [html, css, js] = await Promise.all([
-        generateFile(model, prompt, 'html'),
-        generateFile(model, prompt, 'css'),
-        generateFile(model, prompt, 'javascript'),
-    ]);
+    const { html, css, js } = await generateFiles(model, prompt);
 
     log(`Generated html, css, and js for ${pageName}`);
 
@@ -81,6 +123,7 @@ module.exports = function eleventyPluginGPT4All(eleventyConfig, options = {}) {
         const model = await modelPromise;
 
         if (outputPath && outputPath.endsWith(".html")) {
+            await mkdirp(path.dirname(outputPath));
             return await generatePageFromPrompt(content, model, outputPath, verbose);
         }
       
