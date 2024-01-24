@@ -9,28 +9,40 @@ You are an expert web developer, who conforms
 to the latest best practices, and has access to all knowledge necessary 
 to complete the tasks I assign to you. Please think carefully before 
 giving me an answer, and check your work for correctness. Consider 
-accessibility, seo, and performance when designing solutions.
+accessibility, seo, and performance when designing solutions, and take
+as much time as you need to come to a good solution.
 `;
 
-const getIntroPrompt = (prompt) => `
+const getInitialCodePrompt = (prompt, lang) => `
 We are going to write a web page that matches the following description, 
 surrounded by triple quotes ("""). The prompt description is as follows:
 
 """
 ${prompt}
 """
+
+Please generate the ${lang} needed for the web page. Please output the 
+code, and only the code, in ${lang} language, following best practices 
+and coding style.
 `;
 
 const getCodeReviewPrompt = (lang, code) => `
 Please review the following ${lang} code, delimited by triple quotes 
-(""") for correctness and best practices. If you find any errors, 
+("""), for correctness and best practices. If you find any errors, 
 please correct them and return the corrected code and only the corrected 
-code. 
+code. If you find no errors, please return the code as is.
 
 """
 ${code}
 """
 `;
+
+const getInitialCode = async (model, prompt, lang) => {
+    const response = await createCompletion(model, [
+        { role: 'user', content: getInitialCodePrompt(prompt, lang) }
+    ], { systemPromptTemplate });
+    return response.choices[0].message.content;
+}
 
 const codeReview = async (model, code, lang) => {
     const response = await createCompletion(model, [
@@ -40,29 +52,18 @@ const codeReview = async (model, code, lang) => {
 };
 
 const generateFiles = async (model, prompt) => {
-    const htmlResponse = await createCompletion(model, [
-        { role: 'user', content: getIntroPrompt(prompt) },
-        { role: 'user', content: `Please generate the html needed for the web page. Please output the code, and only the code, in html language following best practices and coding style` }
-    ], { systemPromptTemplate });
+    const htmlResponse = await getInitialCode(model, prompt, 'html');
+    const cssResponse = await getInitialCode(model, prompt, 'css');
+    const jsResponse = await getInitialCode(model, prompt, 'javascript');
 
-    const cssResponse = await createCompletion(model, [
-        { role: 'user', content: getIntroPrompt(prompt) },
-        { role: 'user', content: `Please generate the css needed for the web page. Please output the code, and only the code, in css language following best practices and coding style` }
-    ], { systemPromptTemplate });
-
-    const jsResponse = await createCompletion(model, [
-        { role: 'user', content: getIntroPrompt(prompt) },
-        { role: 'user', content: `Please generate the javascript needed for the web page. Please output the code, and only the code, in javascript language following best practices and coding style` }
-    ], { systemPromptTemplate });
-
-    createCompletion(model, [
-        { role: 'user', content: `Thank you for your work.` }
-    ], { systemPromptTemplate });
+    const reviewedHtml = await codeReview(model, htmlResponse, 'html');
+    const reviewedCss = await codeReview(model, cssResponse, 'css');
+    const reviewedJs = await codeReview(model, jsResponse, 'javascript');
 
     return {
-        html: await codeReview(model, htmlResponse.choices[0].message.content, 'html'),
-        css: await codeReview(model, cssResponse.choices[0].message.content, 'css'),
-        js: await codeReview(model, jsResponse.choices[0].message.content, 'javascript'),
+        html: reviewedHtml,
+        js: reviewedJs,
+        css: reviewedCss,
     };
 }
 
@@ -71,12 +72,12 @@ const generatePageFromPrompt = async (prompt, model, outputPath, verbose) => {
     const pageName = path.basename(outputPath, '.html');
     const dirName = path.dirname(outputPath);
 
-    log(`Generating page ${pageName} from prompt`);
+    log(`Generating page ${dirName}/${pageName} from prompt`);
     
     // Call gpt4all with the prompt and get the statics
     const { html, css, js } = await generateFiles(model, prompt);
 
-    log(`Generated html, css, and js for ${pageName}`);
+    log(`Generated html, css, and js for ${dirName}/${pageName}`);
 
     // Parse the html into a DOM for us to operate on.
     // I checked to make sure that jsdom doesn't execute script
@@ -115,7 +116,7 @@ const generatePageFromPrompt = async (prompt, model, outputPath, verbose) => {
 };
 
 module.exports = function eleventyPluginGPT4All(eleventyConfig, options = {}) {
-    const modelName = options.modelName || 'replit-code-v1_5-3b-newbpe-q4_0.gguf';
+    const modelName = options.modelName || 'starcoder-newbpe-q4_0.gguf';
     const verbose = options.verbose || false;
     const modelPromise = loadModel(modelName, { verbose });
 
