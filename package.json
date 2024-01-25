@@ -5,7 +5,9 @@
   "main": "index.js",
   "type": "commonjs",
   "scripts": {
-    "lint": "eslint index.js"
+    "coverage": "node --test --experimental-test-coverage",
+    "test": "node --test",
+    "lint": "eslint index.js index.test.js"
   },
   "keywords": [
     "genai",

@@ -2,7 +2,7 @@ const path = require('node:path');
 const fs = require('node:fs/promises');
 const { JSDOM } = require('jsdom');
 const { createCompletion, loadModel } = require('gpt4all');
-const mkdirp = require('mkdirp');
+const { mkdirp } = require('mkdirp');
 
 const systemPromptTemplate = `
 You are an expert web developer, who conforms 
@@ -13,7 +13,7 @@ accessibility, seo, and performance when designing solutions, and take
 as much time as you need to come to a good solution.
 `;
 
-const getInitialCodePrompt = (prompt, lang) => `
+const defaultInitialCode = (prompt, lang) => `
 We are going to write a web page that matches the following description, 
 surrounded by triple quotes ("""). The prompt description is as follows:
 
@@ -26,7 +26,7 @@ code, and only the code, in ${lang} language, following best practices
 and coding style.
 `;
 
-const getCodeReviewPrompt = (lang, code) => `
+const defaultCodeReview = (lang, code) => `
 Please review the following ${lang} code, delimited by triple quotes 
 ("""), for correctness and best practices. If you find any errors, 
 please correct them and return the corrected code and only the corrected 
@@ -37,28 +37,28 @@ ${code}
 """
 `;
 
-const getInitialCode = async (model, prompt, lang) => {
-    const response = await createCompletion(model, [
-        { role: 'user', content: getInitialCodePrompt(prompt, lang) }
-    ], { systemPromptTemplate });
-    return response.choices[0].message.content;
-}
+const generateFiles = async ({ model, prompt, initialCode, codeReview }) => {
+    const getInitialCode = async (model, prompt, lang) => {
+        const response = await createCompletion(model, [
+            { role: 'user', content: initialCode(prompt, lang) }
+        ], { systemPromptTemplate });
+        return response.choices[0].message.content;
+    }
+    
+    const doCodeReview = async (model, code, lang) => {
+        const response = await createCompletion(model, [
+            { role: 'user', content: codeReview(lang, code) }
+        ], { systemPromptTemplate });
+        return response.choices[0].message.content;
+    };
 
-const codeReview = async (model, code, lang) => {
-    const response = await createCompletion(model, [
-        { role: 'user', content: getCodeReviewPrompt(lang, code) }
-    ], { systemPromptTemplate });
-    return response.choices[0].message.content;
-};
-
-const generateFiles = async (model, prompt) => {
     const htmlResponse = await getInitialCode(model, prompt, 'html');
     const cssResponse = await getInitialCode(model, prompt, 'css');
     const jsResponse = await getInitialCode(model, prompt, 'javascript');
 
-    const reviewedHtml = await codeReview(model, htmlResponse, 'html');
-    const reviewedCss = await codeReview(model, cssResponse, 'css');
-    const reviewedJs = await codeReview(model, jsResponse, 'javascript');
+    const reviewedHtml = await doCodeReview(model, htmlResponse, 'html');
+    const reviewedCss = await doCodeReview(model, cssResponse, 'css');
+    const reviewedJs = await doCodeReview(model, jsResponse, 'javascript');
 
     return {
         html: reviewedHtml,
@@ -67,7 +67,7 @@ const generateFiles = async (model, prompt) => {
     };
 }
 
-const generatePageFromPrompt = async (prompt, model, outputPath, verbose) => {
+const generatePageFromPrompt = async ({ prompt, model, outputPath, verbose, initialCode, codeReview }) => {
     const log = verbose ? console.log : () => {};
     const pageName = path.basename(outputPath, '.html');
     const dirName = path.dirname(outputPath);
@@ -75,7 +75,7 @@ const generatePageFromPrompt = async (prompt, model, outputPath, verbose) => {
     log(`Generating page ${dirName}/${pageName} from prompt`);
     
     // Call gpt4all with the prompt and get the statics
-    const { html, css, js } = await generateFiles(model, prompt);
+    const { html, css, js } = await generateFiles({ model, prompt, initialCode, codeReview });
 
     log(`Generated html, css, and js for ${dirName}/${pageName}`);
 
@@ -118,6 +118,9 @@ const generatePageFromPrompt = async (prompt, model, outputPath, verbose) => {
 module.exports = function eleventyPluginGPT4All(eleventyConfig, options = {}) {
     const modelName = options.modelName || 'starcoder-newbpe-q4_0.gguf';
     const verbose = options.verbose || false;
+    const prompts = options.prompts || {};
+    const initialCode = prompts.initialCode || defaultInitialCode;
+    const codeReview = prompts.codeReview || defaultCodeReview;
     const modelPromise = loadModel(modelName, { verbose });
 
     eleventyConfig.addTransform('gpt4all-prompt', async (content, outputPath) => {
@@ -125,7 +128,7 @@ module.exports = function eleventyPluginGPT4All(eleventyConfig, options = {}) {
 
         if (outputPath && outputPath.endsWith(".html")) {
             await mkdirp(path.dirname(outputPath));
-            return await generatePageFromPrompt(content, model, outputPath, verbose);
+            return await generatePageFromPrompt({ content, model, outputPath, verbose, initialCode, codeReview });
         }
       
         return content;
