@@ -19,7 +19,7 @@
   "author": "Douglas Wade <douglas.b.wade@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "gpt4all": "^3.1.0",
+    "gpt4all": "^4.0.0",
     "jsdom": "^24.0.0",
     "mkdirp": "^3.0.1"
   },
