@@ -38,5 +38,6 @@
   "homepage": "https://github.com/doug-wade/eleventy-plugin-gpt4all",
   "repository": {
     "url": "git+https://github.com/doug-wade/eleventy-plugin-gpt4all.git"
-  }
+  },
+  "packageManager": "yarn@4.3.0"
 }
