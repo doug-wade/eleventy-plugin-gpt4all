@@ -25,7 +25,8 @@
   },
   "devDependencies": {
     "@types/node": "20.14.2",
-    "eslint": "^9.4.0"
+    "eslint": "^9.4.0",
+    "globals": "^15.4.0"
   },
   "files": [
     "index.js",
