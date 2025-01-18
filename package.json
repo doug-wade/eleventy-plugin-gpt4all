@@ -1,6 +1,6 @@
 {
   "name": "eleventy-plugin-gpt4all",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "An eleventy plugin for generating static assets from text prompts",
   "main": "index.js",
   "type": "commonjs",
