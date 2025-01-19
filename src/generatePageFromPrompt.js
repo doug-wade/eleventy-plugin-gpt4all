@@ -1,5 +1,5 @@
 const path = require('node:path');
-const { writeFile } = require('node:fs');
+const { writeFile } = require('node:fs/promises');
 
 const { JSDOM } = require('jsdom');
 
