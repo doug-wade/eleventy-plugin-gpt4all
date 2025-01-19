@@ -15,7 +15,6 @@ describe('generatePageFromPrompt', () => {
     const generatePageFromPrompt = require('../src/generatePageFromPrompt');
 
     afterEach(() => {
-        console.log('createCompletionMock.mock.resetCalls', createCompletionMock.mock.resetCalls)
         writeFileMock.mock.resetCalls();
         createCompletionMock.mock.resetCalls();
     });
