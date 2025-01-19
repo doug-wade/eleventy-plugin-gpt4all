@@ -3,7 +3,7 @@ const assert = require('node:assert');
 
 const gpt4all = require('gpt4all');
 
-const fs = require('node:fs');
+const fs = require('node:fs/promises');
 
 describe('generatePageFromPrompt', () => {
     const createCompletionMock = mock.method(gpt4all, 'createCompletion', async () => ({
