@@ -11,16 +11,14 @@ as much time as you need to come to a good solution.
 
 const generateFiles = async ({ model, prompt, initialCode, codeReview }) => {
     const getInitialCode = async (model, prompt, lang) => {
-        const response = await createCompletion(model, [
-            { role: 'user', content: initialCode(prompt, lang) }
-        ], { systemPromptTemplate });
+        const content = initialCode(prompt, lang);
+        const response = await createCompletion(model, content, { systemPromptTemplate });
         return response.choices[0].message.content;
     }
     
     const doCodeReview = async (model, code, lang) => {
-        const response = await createCompletion(model, [
-            { role: 'user', content: codeReview(lang, code) }
-        ], { systemPromptTemplate });
+        const content = codeReview(lang, code);
+        const response = await createCompletion(model, content, { systemPromptTemplate });
         return response.choices[0].message.content;
     };
 

@@ -34,7 +34,7 @@ See the example repository [here](https://github.com/doug-wade/eleventy-plugin-g
 
 ### modelName
 
-Choose which GPT4All-supported model to use to generate your static website. Defaults to `mistral-7b-openorca.Q4_0.gguf`.
+Choose which GPT4All-supported model to use to generate your static website. Note that this is found in the "Model File" field, rather than the "Name" field of the "Model Settings" page -- for instance, `Llama 3 8B Instruct` is the incorrect `modelName` -- you should instead input `Meta-Llama-3-8B-Instruct.Q4_0.gguf`. Defaults to `mistral-7b-openorca.Q4_0.gguf`.
 
 ```javascript
 eleventyConfig.addPlugin(gpt4AllPlugin, { 
