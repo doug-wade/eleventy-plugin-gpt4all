@@ -1,6 +1,8 @@
 const path = require('node:path');
-const fs = require('fs/promises');
+const { writeFile } = require('node:fs');
+
 const { JSDOM } = require('jsdom');
+
 const generateFiles = require('./generateFiles');
 
 const generatePageFromPrompt = async ({ prompt, model, outputPath, verbose, initialCode, codeReview }) => {
@@ -28,8 +30,8 @@ const generatePageFromPrompt = async ({ prompt, model, outputPath, verbose, init
     const cssFileName = path.join(dirName, `${pageName}.css`);
 
     await Promise.all([ 
-        fs.writeFile(jsFileName, js),
-        fs.writeFile(cssFileName, css),
+        writeFile(jsFileName, js),
+        writeFile(cssFileName, css),
     ]);
 
     log(`Wrote ${jsFileName} and ${cssFileName}`);

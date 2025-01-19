@@ -1,21 +1,26 @@
 const { afterEach, describe, it, mock } = require('node:test');
 const assert = require('node:assert');
 
-const fs = require('fs/promises');
-mock.method(fs, 'writeFile', async () => ({}));
 const gpt4all = require('gpt4all');
-mock.method(gpt4all, 'createCompletion', async () => ({
-    choices: [{ message: { content: 'mock content' }}],
-}));
 
+const fs = require('node:fs');
 
 describe('generatePageFromPrompt', () => {
+    const createCompletionMock = mock.method(gpt4all, 'createCompletion', async () => ({
+        choices: [{ message: { content: 'mock content' }}],
+    }));
+    const writeFileMock = mock.method(fs, 'writeFile', async () => {
+        return Promise.resolve();
+    });
+    const generatePageFromPrompt = require('../src/generatePageFromPrompt');
+
     afterEach(() => {
-        mock.reset();
+        console.log('createCompletionMock.mock.resetCalls', createCompletionMock.mock.resetCalls)
+        writeFileMock.mock.resetCalls();
+        createCompletionMock.mock.resetCalls();
     });
 
-    it('should call createChatCompletion six times', async () => {
-        const generatePageFromPrompt = require('../src/generatePageFromPrompt');
+    it('should call writeFile two times', async () => {
         const initialCode = mock.fn();
         const codeReview = mock.fn();
 
@@ -28,26 +33,24 @@ describe('generatePageFromPrompt', () => {
             codeReview 
         });
 
-        assert.strictEqual(gpt4all.createCompletion.mock.calls.length, 6);
+        assert.strictEqual(writeFileMock.mock.calls.length, 2);
+    });
+
+    it('should call createCompletion six times', async () => {
+        const initialCode = mock.fn();
+        const codeReview = mock.fn();
+
+        await generatePageFromPrompt({ 
+            prompt: 'prompt', 
+            client: {}, 
+            outputPath: 'outputPath', 
+            verbose: false, 
+            initialCode, 
+            codeReview 
+        });
+
+        assert.strictEqual(createCompletionMock.mock.calls.length, 6);
         assert.strictEqual(initialCode.mock.calls.length, 3);
         assert.strictEqual(codeReview.mock.calls.length, 3);
     });
-
-    it.skip('should call writeFile three times', async () => {
-        const generatePageFromPrompt = require('../src/generatePageFromPrompt');
-        const initialCode = mock.fn();
-        const codeReview = mock.fn();
-
-        await generatePageFromPrompt({ 
-            prompt: 'prompt', 
-            client: {}, 
-            outputPath: 'outputPath', 
-            verbose: false, 
-            initialCode, 
-            codeReview 
-        });
-
-        assert.strictEqual(fs.writeFile.mock.calls.length, 3);
-    });
-
 });

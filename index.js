@@ -20,7 +20,9 @@ const defaultCodeReview = (lang, code) => `
 Please review the following ${lang} code, delimited by triple quotes 
 ("""), for correctness and best practices. If you find any errors, 
 please correct them and return the corrected code and only the corrected 
-code. If you find no errors, please return the code as is.
+code. If you find no errors, please return the code as is. It is imperative
+that you return the full code, corrected and complete, delimited by a code 
+fence, delimited by triple quotes (""").
 
 """
 ${code}
