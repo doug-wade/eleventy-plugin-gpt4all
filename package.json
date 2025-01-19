@@ -29,6 +29,7 @@
     "globals": "^15.4.0"
   },
   "files": [
+    "src/*.js",
     "index.js",
     "package.json",
     "README.md"
