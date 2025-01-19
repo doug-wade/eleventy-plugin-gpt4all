@@ -1,5 +1,7 @@
 const { createCompletion } = require('gpt4all');
 
+const extractCodeFromResponse = require('./extractCodeFromResponse');
+
 const systemPromptTemplate = `
 You are an expert web developer, who conforms 
 to the latest best practices, and has access to all knowledge necessary 
@@ -31,9 +33,9 @@ const generateFiles = async ({ model, prompt, initialCode, codeReview }) => {
     const reviewedJs = await doCodeReview(model, jsResponse, 'javascript');
 
     return {
-        html: reviewedHtml,
-        js: reviewedJs,
-        css: reviewedCss,
+        html: extractCodeFromResponse(reviewedHtml, 'html'),
+        css: extractCodeFromResponse(reviewedCss, 'css'),
+        js: extractCodeFromResponse(reviewedJs, 'javascript'),
     };
 }
 

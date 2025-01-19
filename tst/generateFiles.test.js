@@ -2,21 +2,21 @@ const { afterEach, describe, it, mock } = require('node:test');
 const assert = require('node:assert');
 
 const gpt4all = require('gpt4all');
-mock.method(gpt4all, 'createCompletion', async () => ({
-    choices: [{ message: { content: 'mock content' }}],
-}));
-
-const generateFiles = require('../src/generateFiles');
 
 describe('generateFiles', () => {
+    const createCompletionMock = mock.method(gpt4all, 'createCompletion', async () => ({
+        choices: [{ message: { content: 'mock content' }}],
+    }));
+    const generateFiles = require('../src/generateFiles');
+
     afterEach(() => {
-        mock.reset();
+        createCompletionMock.mock.resetCalls();
     });
 
     it('should call createCompletion six times', async () => {
         await generateFiles({ model: {}, prompt: 'prompt', initialCode: mock.fn(), codeReview: mock.fn() });
 
-        assert.strictEqual(gpt4all.createCompletion.mock.calls.length, 6);
+        assert.strictEqual(createCompletionMock.mock.calls.length, 6);
     });
 
     it('should call initialCode three times', async () => {
