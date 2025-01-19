@@ -40,5 +40,5 @@
   "repository": {
     "url": "git+https://github.com/doug-wade/eleventy-plugin-gpt4all.git"
   },
-  "packageManager": "yarn@4.3.0"
+  "packageManager": "yarn@4.6.0"
 }
